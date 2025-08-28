@@ -1,141 +1,310 @@
-I am trying to redo lightrag to make an agentic self maintaining knowledge graph. Here are the changes I am planning: |
-- Instead of SQL, I want to use a NoSQL DB, to make it similar to OLAP, where multiple data types can live and query together
-- I want to use pydantic data validation for every node and edge. I want an agent to keep updating this schema based on what documents are encountered. This can further be connected to external data sources to complete. For ex: 
-	Person
-		- Name
-		- Age 
-		- Phone ..
-	Place
-		-Name 
-		-Lat/Long
-		-...
-- I want to link each stored piece of information to the document it is referenced from. This way, we can make the document metadata quryable at the retrieval level
+# TidyWorld: Agentic Self-Maintaining Knowledge Graph
 
-# TidyWorld
+TidyWorld reimagines knowledge graph construction by creating a dynamic, intelligent system that automatically evolves its understanding of data through agentic processes. Unlike traditional knowledge graphs that require manual schema definition and static extraction rules, TidyWorld uses AI agents to continuously learn, adapt, and maintain both the data structure and content quality.
 
-TidyWorld is an agentic self-maintaining knowledge graph system designed to intelligently organize, validate, and link information from various documents and data sources.
+## 🌟 Project Vision
 
-## Overview
+### Core Philosophy
+TidyWorld addresses fundamental limitations in current knowledge graph systems:
+- **Static schemas** that break when encountering new data types
+- **Loss of provenance** when information is extracted and transformed
+- **Manual deduplication** that doesn't handle conflicting information intelligently
+- **Rigid extraction rules** that can't adapt to diverse document types
 
-TidyWorld reimagines document-centric knowledge management by creating a dynamic, self-evolving graph structure that maintains data integrity while preserving source context. The system employs NoSQL database architecture for flexible data storage and intelligent schema evolution.
+### Key Innovations
 
-## Steps
-    Step-1: Chunking
-        Chunk document and save it to a vector DB with the metadata. 
-        TODO: Add contextual chunking
-    
-    Step-2: Extract Nodes/Edges based on schema:
-        Schema_Example:  {
-            Nodes: 
-                {
-                    Person:
-                    {
-                        Name: 
-                        Phone: 
-                        ...
-                    },
-                    Place:
-                    {
-                        Name: 
-                        Lat:
-                        Long:  
-                        ...
-                    },
+#### 1. **Agentic Schema Evolution**
+Instead of manually defining rigid schemas, TidyWorld uses AI agents to:
+- Automatically discover entity types and their properties from documents
+- Evolve schemas as new information patterns emerge
+- Maintain backward compatibility while adding new fields and relationships
+- Use semantic field matching to intelligently assign extracted data to appropriate schemas
 
-                }
-            Edges:
-                {
-                    Person-Place:
-                    {
-                        Name:
-                        Visited_date:
-                        Visit_table_UUID:  
-                        ...
-                    }
-                }
-            }
-        Schema is a pydantic-type data validation. Most fields are optional, with few core fields required for creation of Node/Entity. This schema can by dynamic/add-field-only/static
-            If dynamic schema, for each document, alter the global schema based on each document, add required schema data type and field
-            Elif add-field-only: Only add  field in the schemas based on information
-            Else static schema, nothing can be changed 
-        
-    Step-3: Break to atomic factoids:
-        After extraction, break each extraction in singular factoids. For ex: 
-        Node of type person was detected, so 
-        {
-            Person:
-            {
-                Name: 
-                Phone: 
-                ...
-            }
-        }
-        This is converted to a list of singular factoids. This is done for ease of upload and parse into NOSQL. ***To validate if a good idea. 
-        Reason for atomizing: This can maintain different information sources for the same item. For ex: Name of a node changes a 100 time, we will have history of the node changes and the details. Similarlle, Phone num changes and is conflicting between docs, we are not limited to 1 anymore.  
-        TODO: Maybe only save UUID here and all the textual data in the vector table???
+#### 2. **Factoid-Based Versioning System**
+TidyWorld stores information as atomic, versioned factoids that preserve:
+- **Complete change history** - Track how entity attributes evolve over time
+- **Source attribution** - Link every piece of information to its originating document
+- **Conflict resolution** - Handle contradictory information from multiple sources
+- **Temporal queries** - Reconstruct entity states at any point in time
 
-        
-        {Node-1:[{document_id, factoid:{Name: 'XYZ'}, *Whatever other items we want to store*},
-        {document_id, factoid:{Phone: '123'}, *Whatever other items we want to store*}],
-        Node-2:[{document_id, factoid:{Name: 'XYZ'}, *Whatever other items we want to store*},
-        {document_id, factoid:{Phone: '123'}, *Whatever other items we want to store*}],
-        Edge-1:[{document_id, factoid:{Name: 'XYZ'}, *Whatever other items we want to store*},
-        {document_id, factoid:{Phone: '123'}, *Whatever other items we want to store*}]}
-    
-    Step-4: Embed the summary and look for duplication in current DB
-        TODO: Validate if all this can be done agentically for google ADK 
-        With the information found, look for nodes/edges already present. If no item found but suspect duplicate, Mark a suspect duplicate and create the new graph item
-        In case an old graph item is added to, check for suspect duplicate and deduplicate if valid. Unlist the suspect duplicate. 
-        Example NOSQL collection item: 
-        {
-            graph_id:UUID 
-            facts: [List of factoids]
-            suspect_duplicate: [List UUID] # NEED A WAY TO UPDATE THE ORIGNAL collection item
-        }
-    Step-5: Custom business agentic logic: 
-        Any business logic goes here I guess: 
-        Ex: Only nodes that exist in SQL table should exist in the graph/ 
-        Get lat long for the place/ etc
+#### 3. **Intelligent Deduplication with Separate Processing Paths**
+The system routes extracted entities through specialized agentic paths:
+- **Creation Path**: For genuinely new entities requiring fresh graph nodes
+- **Update Path**: For adding information to existing entities
+- **Merge Path**: For combining duplicate entities discovered across documents
+- **Conflict Path**: For handling uncertain cases that need human review or additional analysis
 
-Open questions: 
-- How will doc level metadata be managed? 
-- What will be the folder structure? 
-- This is the agentic graph builder, How will we extend a retriever? What is a good design pattern for this? 
+#### 4. **Hybrid Storage Architecture**
+TidyWorld coordinates between multiple storage systems:
+- **NoSQL Database**: Stores versioned factoids with complete audit trails
+- **Knowledge Graph**: Maintains current canonical entity views and relationships
+- **Vector Database**: Enables semantic search and schema matching
+- **Event-Driven Sync**: Ensures consistency across all storage layers
+
+## 🏗️ Technical Architecture
+
+### System Overview
+```
+Documents → Chunking → Agentic Extraction → Factoid Processing → Storage Coordination
+    ↓           ↓            ↓                  ↓                    ↓
+Vector DB   Contextual   Schema Selection   Deduplication      KG + NoSQL
+           Enhancement   Entity Creation    Conflict Resolution   + Vector DB
+```
+
+### Core Components
+
+#### 1. **Chunking Service** (`_services/_chunk_extraction.py`)
+- **Contextual Chunking**: Preserves entity boundaries and semantic coherence
+- **Metadata Preservation**: Maintains document provenance and context
+- **Adaptive Sizing**: Adjusts chunk boundaries based on content structure
+
+#### 2. **Schema Management System** (`_schemas/`)
+- **Hybrid Storage**: YAML files for human editing + database for runtime performance
+- **Semantic Indexing**: Vector embeddings of field descriptions enable intelligent schema selection
+- **Version Control**: Git-compatible schema evolution with rollback capabilities
+- **Identifier Fields**: Metadata-driven field weighting for entity resolution
+
+#### 3. **Agentic Extraction Service** (`_services/`)
+- **Dynamic Schema Discovery**: AI agents analyze documents to propose new entity types
+- **Structured Output**: Function calling ensures reliable data extraction
+- **Business Logic Integration**: Pluggable agents for domain-specific processing
+- **Confidence Scoring**: Every extraction includes uncertainty estimates
+
+#### 4. **Intelligent Deduplication** (`_agents/`)
+- **Entity Matching**: Semantic similarity + identifier field analysis
+- **Processing Router**: Directs entities to creation, update, merge, or conflict resolution paths
+- **Conflict Resolution**: AI-powered analysis of contradictory information
+- **Human-in-the-Loop**: Escalates uncertain cases for review
+
+#### 5. **Factoid Management** (`_storage/`)
+- **Atomic Storage**: Each entity attribute stored as individually versioned factoid
+- **Temporal Queries**: Reconstruct entity state at any historical point
+- **Source Tracking**: Complete audit trail from extraction to storage
+- **Conflict Handling**: Multiple conflicting values coexist with confidence scores
+
+#### 6. **Hybrid Storage Coordinator** (`_storage/`)
+- **Multi-Database Sync**: Coordinates NoSQL factoids, graph entities, and vector embeddings
+- **Event-Driven Architecture**: Real-time consistency across storage layers
+- **Transaction Management**: ACID guarantees for complex multi-store operations
+- **Performance Optimization**: Hot/warm/cold data tiering for efficient access
 
 
-## Implementation Details
+### Data Flow Architecture
 
-Design the project similar to fast_graphrag. 
+#### Information Processing Pipeline
+1. **Document Ingestion**: Documents processed through contextual chunking
+2. **Schema Selection**: Vector similarity matches chunks to relevant entity schemas
+3. **Agentic Extraction**: AI agents extract structured entities using discovered schemas
+4. **Deduplication Routing**: Entities classified as new, updates, merges, or conflicts
+5. **Factoid Generation**: Entity attributes decomposed into versioned, attributed factoids
+6. **Storage Coordination**: Factoids stored in NoSQL, canonical views in graph DB
+7. **Index Updates**: Vector embeddings updated for future similarity searches
 
-Add the following subdirectories maybe. Just a suggestion, think carefully!!!: 
-- Agents: Destination for all agents that you might want to use 
-- Schema: Pick schema from here. N/E ----- *** Need to find a way to signify identifier columns!!!
-- KG_Impl: Compatible KG implementation (Neo4j, Apache AGE ...) {Similar to lightRAG}
-- Datastore: Data store implementation such as KV store, MongoDB.. {Similar to lightRAG}
+#### Schema Evolution Cycle
+1. **Pattern Detection**: AI agents identify new entity types in documents
+2. **Schema Proposal**: Generate new schema definitions with example entities
+3. **Validation**: Human review for critical schema changes
+4. **Version Management**: New schema versions with migration strategies
+5. **Embedding Update**: Regenerate field description vectors for semantic matching
 
-Extractor service will look like this perhaps: 
-S1. Agentic Schema create/update: Each schema will have a node/entity and its field type and a detail on what it is meant to store. Maybe add this to a vector DB ??? Also need to add identifier in  the schema (name of person/ email of user.. )
+### Key Technical Decisions
 
-S2. Agentic extract node/entity based on the schema for each chunk. Need to figure how to do this, but it essentially is structured output. 
+#### **Why Factoids Over Traditional Entity Storage?**
+- **Granular Provenance**: Know exactly which document contributed each piece of information
+- **Conflict Management**: Handle contradictory information without data loss
+- **Temporal Analysis**: Track how entity attributes change over time
+- **Source Quality**: Weight information based on document reliability and recency
 
-S3. Figure out deduplication. Differentiate node creation and node updation, two different agentic paths maybe??
+#### **Why Hybrid Schema Approach?**
+- **Human Accessibility**: YAML files enable non-technical schema editing
+- **Runtime Performance**: Database storage provides millisecond schema lookups
+- **Semantic Intelligence**: Vector embeddings enable smart schema selection
+- **Version Control**: Git integration for schema change management
 
+#### **Why Separate Processing Paths?**
+- **Specialized Logic**: Different algorithms for creation vs. updates vs. merges
+- **Performance Optimization**: Avoid expensive deduplication for clearly new entities
+- **Quality Control**: Route uncertain cases to human reviewers
+- **Scalability**: Parallel processing of different entity types
 
+## 🔧 Implementation Status
 
-Where does it differentiate from fast Graph Rag: 
-    - While extracting node/edge, use an agentic extractor instead of premade queries. In someways, make it similar to the chunking, where there is a default chunker and give user power to change it. 
-    - Storing factoids in NoSQL... ----- *** Need to figure this out, how to coordinate between the KG and the NoSQL 
-    - Deduplication -- Change deduplication. Maybe make it agentic too 
-    - After creation of node edge, give usr power to add business logic thru agents as described above. So for seperate node/edge type, have access to separate agents?? 
-    - Way to ensure sync between KG and NoSQL ???    
+### Repository Structure
+```
+tidyworld/
+├── _tidyworld.py              # Main orchestrator class
+├── _types.py                  # Core type definitions
+├── _models.py                 # Pydantic models for structured output
+├── _utils.py                  # Utility functions
+├── _services/                 # Pluggable service implementations
+│   ├── _base.py              # Service interface definitions
+│   └── _chunk_extraction.py  # Contextual chunking implementation
+├── _schemas/                  # Schema management system
+│   └── _base.py              # Schema registry and evolution logic
+├── _storage/                  # Storage abstraction layer
+│   └── _base.py              # Multi-database coordination
+├── _agents/                   # Agentic processing components
+│   └── _base.py              # Agent framework and interfaces
+└── _llm/                     # Language model integration
+    └── ...                   # LLM service implementations
+```
 
+### Current Implementation Phase
+- ✅ **Foundation**: Core architecture and service interfaces defined
+- 🔄 **In Progress**: Agentic extraction service and schema management
+- 📋 **Next**: Factoid storage system and deduplication logic
+- 🔮 **Future**: Production optimizations and user interfaces
 
-    
-    
-    
+## 🚀 Getting Started
 
+### Prerequisites
+- Python 3.8+
+- Supported vector database (Qdrant, Weaviate, or Chroma)
+- NoSQL database (MongoDB, ArangoDB, or Cassandra)
+- Knowledge graph database (Neo4j, ArangoDB, or NetworkX)
 
-    
+### Basic Usage
+```python
+from tidyworld import TidyWorld
 
+# Initialize with your preferred storage backends
+tidy = TidyWorld(
+    working_dir="./knowledge_graph",
+    vector_storage="qdrant://localhost:6333",
+    nosql_storage="mongodb://localhost:27017/tidyworld",
+    graph_storage="neo4j://localhost:7687"
+)
 
-    
+# Ingest documents - schemas evolve automatically
+await tidy.insert([
+    "John Doe works at Microsoft as a Senior Engineer.",
+    "Jane Smith is the CEO of TechCorp, located in San Francisco."
+])
+
+# Query with full provenance
+result = await tidy.query(
+    "Who works at technology companies?",
+    include_provenance=True,
+    temporal_context="last_6_months"
+)
+```
+
+### Schema Configuration
+```yaml
+# schemas/nodes/person/schema.yaml
+entity_type: "Person"
+version: "2.1"
+description: "Individual person with professional attributes"
+
+identifiers:
+  - field: "name"
+    weight: 0.8
+    required: true
+  - field: "email"
+    weight: 0.9
+
+fields:
+  name:
+    type: "string"
+    description: "Full name of the person"
+    examples: ["John Doe", "Dr. Sarah Chen"]
+    aliases: ["full_name", "person_name"]
+  
+  occupation:
+    type: "string" 
+    description: "Job title or profession"
+    examples: ["Software Engineer", "CEO", "Professor"]
+
+business_rules:
+  - name: "linkedin_enrichment"
+    trigger: "email is not null"
+    action: "enrich_from_linkedin_api"
+```
+
+## 🌟 Differentiating Features
+
+### vs. LightRAG
+- **Dynamic schemas** instead of static entity types
+- **Factoid versioning** instead of entity overwrites
+- **Agentic processing** instead of fixed extraction rules
+- **Multi-database coordination** instead of single storage backend
+
+### vs. Traditional Knowledge Graphs
+- **Self-evolving structure** that adapts to new data patterns
+- **Complete information provenance** with source attribution
+- **Intelligent conflict resolution** for contradictory information
+- **Temporal analysis capabilities** for tracking changes over time
+
+### vs. Fast-GraphRAG
+- **Schema-aware extraction** with validation and evolution
+- **Granular factoid storage** instead of document-level chunks
+- **Business logic integration** through pluggable agents
+- **Multi-modal storage** for different data access patterns
+
+## 🎯 Use Cases
+
+### Enterprise Knowledge Management
+- **Document Processing**: Automatically extract and organize information from contracts, reports, and communications
+- **Regulatory Compliance**: Maintain audit trails for all information sources and changes
+- **Knowledge Discovery**: Find connections between entities across disparate document sources
+
+### Research and Academia
+- **Literature Analysis**: Build knowledge graphs from academic papers with full citation tracking
+- **Temporal Studies**: Track how concepts and relationships evolve over time
+- **Cross-Domain Integration**: Merge knowledge from multiple research domains intelligently
+
+### Legal and Financial Services
+- **Due Diligence**: Extract and verify entity information from multiple document sources
+- **Risk Assessment**: Track entity relationships and flag potential conflicts of interest
+- **Compliance Monitoring**: Maintain detailed provenance for regulatory reporting
+
+## 🛣️ Roadmap
+
+### Phase 1: Core Platform (Q1 2024)
+- Complete agentic extraction service implementation
+- Robust factoid storage and versioning system
+- Basic schema evolution with human oversight
+- Production-ready hybrid storage coordination
+
+### Phase 2: Intelligence Layer (Q2 2024)
+- Advanced conflict resolution algorithms
+- Automated schema evolution with confidence thresholds
+- Performance optimizations for large-scale deployments
+- Comprehensive monitoring and observability tools
+
+### Phase 3: User Experience (Q3 2024)
+- Web-based schema management interface
+- Visual knowledge graph exploration tools
+- RESTful and GraphQL APIs for integration
+- Extensive documentation and tutorials
+
+### Phase 4: Enterprise Features (Q4 2024)
+- Multi-tenant architecture with workspace isolation
+- Advanced security and access control
+- Horizontal scaling for massive document collections
+- Integration with popular enterprise tools
+
+## 🤝 Contributing
+
+TidyWorld is designed to be extensible and community-driven. Key areas for contribution:
+
+- **Storage Backends**: Implement new database connectors
+- **Extraction Agents**: Build domain-specific processing logic
+- **Schema Definitions**: Contribute common entity type schemas
+- **Performance Optimizations**: Improve scalability and efficiency
+
+## 📄 License
+
+Apache License 2.0 - See LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+TidyWorld builds upon ideas from:
+- **LightRAG**: Knowledge graph construction from documents
+- **Fast-GraphRAG**: Modular architecture for graph-based RAG
+- **Neo4j**: Graph database best practices
+- **Pydantic**: Schema validation and evolution patterns
+
+---
+
+*TidyWorld represents the next evolution in knowledge graph technology - where artificial intelligence doesn't just extract information, but intelligently organizes, validates, and maintains the entire knowledge structure over time.*
