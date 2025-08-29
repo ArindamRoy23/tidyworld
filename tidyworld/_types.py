@@ -84,6 +84,64 @@ GTChunk = TypeVar("GTChunk", bound=BTChunk)
 # TYPES
 ####################################################################################################
 
+
+# Schema types
+@dataclass
+class TSchemaSource(TSerializable):
+  """A class representing a source of Pydantic schemas.
+
+  This can be used to load schema definitions from various sources like JSON files,
+  databases, or other storage systems. Each schema source can contain multiple model
+  definitions with their identifier configurations.
+  """
+
+  name: str = field()  # Unique name/identifier for this schema source
+  source_type: str = field()  # Type of source (e.g., "json", "yaml", "database")
+  location: str = field()  # URI/path/connection string to the source
+  metadata: Dict[str, Any] = field(default_factory=dict)  # Additional metadata about the source
+
+  class Model(BaseModelAlias.Model, alias="SchemaSource"):
+    name: str = Field(..., description="Unique name/identifier for this schema source")
+    source_type: str = Field(..., description="Type of source (json, yaml, database, etc)")
+    location: str = Field(..., description="URI/path/connection string to the source")
+    metadata: Dict[str, Any] = Field(
+      default_factory=dict, description="Additional metadata about the source", json_schema_extra={"example": {}}
+    )
+
+    @staticmethod
+    def to_dataclass(pydantic: "TSchemaSource.Model") -> "TSchemaSource":
+      return TSchemaSource(
+        name=pydantic.name, source_type=pydantic.source_type, location=pydantic.location, metadata=pydantic.metadata
+      )
+
+
+@dataclass
+class TSchemaDefinition(TSerializable):
+  """A class representing a single schema definition with identifier configuration."""
+
+  model_name: str = field()  # Name of the Pydantic model
+  schema_definition: Dict[str, Any] = field()  # The actual schema definition
+  identifiers: List[str] = field()  # List of field names that form the identifier
+  metadata: Dict[str, Any] = field(default_factory=dict)  # Additional metadata
+
+  class Model(BaseModelAlias.Model, alias="SchemaDefinition"):
+    model_name: str = Field(..., description="Name of the Pydantic model")
+    schema_definition: Dict[str, Any] = Field(..., description="The actual schema definition")
+    identifiers: List[str] = Field(..., description="List of field names that form the identifier")
+    metadata: Dict[str, Any] = Field(
+      default_factory=dict, description="Additional metadata about the schema", json_schema_extra={"example": {}}
+    )
+
+    @staticmethod
+    def to_dataclass(pydantic: "TSchemaDefinition.Model") -> "TSchemaDefinition":
+      return TSchemaDefinition(
+        model_name=pydantic.model_name,
+        schema_definition=pydantic.schema_definition,
+        identifiers=pydantic.identifiers,
+        metadata=pydantic.metadata,
+      )
+
+
 # Embedding types
 TEmbeddingType: TypeAlias = np.float32
 TEmbedding: TypeAlias = npt.NDArray[TEmbeddingType]

@@ -2,21 +2,21 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union, final
 
 from tidyworld._llm._base import BaseLLMService
-from tidyworld._services._base import BaseChunkingService
+from tidyworld._services._base import BaseChunkingService, BaseDataModelService
 
 
-@final
 @dataclass
 class BaseTidyWorld:
     """A class representing a template tidy world: A KG+NOSQLDB+VectorDB information store."""
+    data_model_service: BaseDataModelService = field(default_factory=lambda: BaseDataModelService()) #TODO: To be created
     llm_service: BaseLLMService = field(init=False, default_factory=lambda: BaseLLMService(model=""))
     chunking_service: BaseChunkingService = field(default_factory=lambda: BaseChunkingService())
 
     # TODO: BaseInformationExtractionService(AgenticExtractor)
     information_extraction_service: BaseInformationExtractionService = field(default_factory=lambda: BaseInformationExtractionService())
     
-            # Step 1: State manager insert start
-        # Step 2: Chunk docs  
+        # Step 1: State manager insert start
+        # Step 2: Chunk docs
         # Step 3: Information extraction - Agentic??
         # Step 4: Deduplication - Agentic?
         # Step 5: Business logic - Agentic?
@@ -25,6 +25,8 @@ class BaseTidyWorld:
         # Step 8: Return the result
 
         ## Maybe S5-S6 swap??
+        ## Step 3-5 is all inside ExtractionService
+
     state_manager: BaseStateManagerService[GTNode, GTEdge, GTHash, GTChunk, GTId, GTEmbedding] = field(
         init=False,
         default_factory=lambda: BaseStateManagerService(
@@ -57,11 +59,11 @@ class BaseTidyWorld:
 
         return (0,0,0) #TODO: Return the result, remove this later
 
-
-    def query(
-        self,
-        query: str,
-        params: Optional[QueryParam] = None,
-        show_progress: bool = True
-    ) -> List[str]:
-        return get_event_loop().run_until_complete(self.async_query(query, params, show_progress))
+    # TODO: Implement query function
+    # def query(
+    #     self,
+    #     query: str,
+    #     params: Optional[QueryParam] = None,
+    #     show_progress: bool = True
+    # ) -> List[str]:
+    #     return get_event_loop().run_until_complete(self.async_query(query, params, show_progress))

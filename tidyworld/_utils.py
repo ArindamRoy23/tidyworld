@@ -5,7 +5,6 @@ from functools import wraps
 from typing import Any, Callable, List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
-import numpy.typing as npt
 from scipy.sparse import csr_matrix
 
 from tidyworld._types import TIndex
@@ -64,32 +63,32 @@ def get_event_loop() -> asyncio.AbstractEventLoop:
     return loop
 
 
-def extract_sorted_scores(
-    row_vector: csr_matrix,
-) -> Tuple[npt.NDArray[np.int64], npt.NDArray[np.float32]]:
-    """Take a sparse row vector and return a list of non-zero (index, score) pairs sorted by score."""
-    assert row_vector.shape[0] <= 1, "The input matrix must be a row vector."
-    if row_vector.shape[0] == 0:
-        return np.array([], dtype=np.int64), np.array([], dtype=np.float32)
+# def extract_sorted_scores(
+#     row_vector: csr_matrix,
+# ) -> Tuple[npt.NDArray[np.int64], npt.NDArray[np.float32]]:
+#     """Take a sparse row vector and return a list of non-zero (index, score) pairs sorted by score."""
+#     assert row_vector.shape[0] <= 1, "The input matrix must be a row vector."
+#     if row_vector.shape[0] == 0:
+#         return np.array([], dtype=np.int64), np.array([], dtype=np.float32)
 
-    # Step 1: Get the indices of non-zero elements
-    non_zero_indices = row_vector.nonzero()[1]
+#     # Step 1: Get the indices of non-zero elements
+#     non_zero_indices = row_vector.nonzero()[1]
 
-    # Step 2: Extract the probabilities of these indices
-    probabilities = row_vector.data
+#     # Step 2: Extract the probabilities of these indices
+#     probabilities = row_vector.data
 
-    # Step 3: Use NumPy to create arrays for indices and probabilities
-    indices_array = np.array(non_zero_indices)
-    probabilities_array = np.array(probabilities)
+#     # Step 3: Use NumPy to create arrays for indices and probabilities
+#     indices_array = np.array(non_zero_indices)
+#     probabilities_array = np.array(probabilities)
 
-    # Step 4: Sort the probabilities and get the sorted indices
-    sorted_indices = np.argsort(probabilities_array)[::-1]
+#     # Step 4: Sort the probabilities and get the sorted indices
+#     sorted_indices = np.argsort(probabilities_array)[::-1]
 
-    # Step 5: Create sorted arrays for indices and probabilities
-    sorted_indices_array = indices_array[sorted_indices]
-    sorted_probabilities_array = probabilities_array[sorted_indices]
+#     # Step 5: Create sorted arrays for indices and probabilities
+#     sorted_indices_array = indices_array[sorted_indices]
+#     sorted_probabilities_array = probabilities_array[sorted_indices]
 
-    return sorted_indices_array, sorted_probabilities_array
+#     return sorted_indices_array, sorted_probabilities_array
 
 
 def csr_from_indices_list(

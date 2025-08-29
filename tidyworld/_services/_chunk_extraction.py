@@ -5,8 +5,8 @@ from typing import Iterable, List, Set, Tuple
 
 import xxhash
 
-from fast_graphrag._types import TChunk, TDocument, THash
-from fast_graphrag._utils import TOKEN_TO_CHAR_RATIO
+from tidyworld._types import TChunk, TDocument, THash
+from tidyworld._utils import TOKEN_TO_CHAR_RATIO
 
 from ._base import BaseChunkingService
 
@@ -134,3 +134,4 @@ class DefaultChunkingService(BaseChunkingService[TChunk]):
                     overlap.append(text)
                 result.append("".join(chain(reversed(overlap), (c[0] for c in chunk))))
         return result
+

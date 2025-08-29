@@ -8,7 +8,8 @@ from pydantic import BaseModel
 
 from tidyworld._llm._base import BaseLLMService
 from tidyworld._models import BaseModelAlias
-from tidyworld._types import GTChunk, GTEdge, GTId, GTNode, TDocument
+from tidyworld._storage import BaseGraphStorage
+from tidyworld._types import GTChunk, GTEdge, GTId, GTNode, TDocument, TSchemaDefinition
 
 T_model = TypeVar("T_model", bound=Union[BaseModel, BaseModelAlias])
 TOKEN_PATTERN = re.compile(r"\w+|[^\w\s]", re.UNICODE)
@@ -26,25 +27,63 @@ class BaseChunkingService(Generic[GTChunk]):
     raise NotImplementedError
 
 
-@dataclass
-class BaseInformationExtractionService(Generic[GTChunk, GTNode, GTEdge, GTId]):
-  """Base class for entity and relationship extractors."""
+#   graph_upsert: BaseGraphUpsertPolicy[GTNode, GTEdge, GTId]
+#   max_gleaning_steps: int = 0
 
-  graph_upsert: BaseGraphUpsertPolicy[GTNode, GTEdge, GTId]
-  max_gleaning_steps: int = 0
+#   def extract(
+#     self,
+#     llm: BaseLLMService,
+#     documents: Iterable[Iterable[GTChunk]],
+#     prompt_kwargs: Dict[str, str],
+#     entity_types: List[str],
+#   ) -> List[asyncio.Future[Optional[BaseGraphStorage[GTNode, GTEdge, GTId]]]]:
+#     """Extract both entities and relationships from the given data."""
+#     raise NotImplementedError
 
-  def extract(
-    self,
-    llm: BaseLLMService,
-    documents: Iterable[Iterable[GTChunk]],
-    prompt_kwargs: Dict[str, str],
-    entity_types: List[str],
-  ) -> List[asyncio.Future[Optional[BaseGraphStorage[GTNode, GTEdge, GTId]]]]:
-    """Extract both entities and relationships from the given data."""
-    raise NotImplementedError
+#   async def extract_entities_from_query(
+#     self, llm: BaseLLMService, query: str, prompt_kwargs: Dict[str, str]
+#   ) -> Dict[str, List[str]]:
+#     """Extract entities from the given query."""
+#     raise NotImplementedError
 
-  async def extract_entities_from_query(
-    self, llm: BaseLLMService, query: str, prompt_kwargs: Dict[str, str]
-  ) -> Dict[str, List[str]]:
-    """Extract entities from the given query."""
-    raise NotImplementedError
+class BaseDataModelService():
+    """Base class for schema management."""
+
+    def __post__init__(self):
+        pass
+
+    async def read_schema(self, source: TSchemaDefinition):
+        """Read the schema from some source."""
+        raise NotImplementedError
+
+    async def create_node_data_model(self, data):
+        """Create a node schema from the given data."""
+        raise NotImplementedError
+
+    async def create_edge_data_model(self, data):
+        """Create an edge schema from the given data."""
+        raise NotImplementedError
+
+    async def update_node_data_model(self, data):
+        """Update a node schema from the given data."""
+        raise NotImplementedError
+
+    async def update_edge_data_model(self, data):
+        """Update an edge schema from the given data."""
+        raise NotImplementedError
+
+    async def delete_node_data_model(self, data):
+        """Delete a node schema from the given data."""
+        raise NotImplementedError
+
+    async def delete_edge_data_model(self, data):
+        """Delete an edge schema from the given data."""
+        raise NotImplementedError
+
+class BaseInformationExtractionService():
+    """Base class for information extraction."""
+
+
+    async def extract(self, data)->List[asyncio.Future[Optional[BaseGraphStorage[GTNode, GTEdge, GTId]]]]:
+        """Extract information from the given data."""
+        raise NotImplementedError

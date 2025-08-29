@@ -45,10 +45,7 @@ TidyWorld coordinates between multiple storage systems:
 
 ### System Overview
 ```
-Documents → Chunking → Agentic Extraction → Factoid Processing → Storage Coordination
-    ↓           ↓            ↓                  ↓                    ↓
-Vector DB   Contextual   Schema Selection   Deduplication      KG + NoSQL
-           Enhancement   Entity Creation    Conflict Resolution   + Vector DB
+*TO FILL*
 ```
 
 ### Core Components
@@ -58,11 +55,11 @@ Vector DB   Contextual   Schema Selection   Deduplication      KG + NoSQL
 - **Metadata Preservation**: Maintains document provenance and context
 - **Adaptive Sizing**: Adjusts chunk boundaries based on content structure
 
-#### 2. **Schema Management System** (`_schemas/`)
-- **Hybrid Storage**: YAML files for human editing + database for runtime performance
-- **Semantic Indexing**: Vector embeddings of field descriptions enable intelligent schema selection
-- **Version Control**: Git-compatible schema evolution with rollback capabilities
-- **Identifier Fields**: Metadata-driven field weighting for entity resolution
+#### 2. **Model Management System** (`_services/_model_manager.py`)
+- **Flexible Storage**: Support for multiple schema sources (JSON, YAML, database)
+- **Identifier Management**: Explicit tracking of identifier fields for entity resolution
+- **Model Validation**: Pydantic-based schema validation and transformation
+- **Extensible Design**: Support for custom model sources and validation rules
 
 #### 3. **Agentic Extraction Service** (`_services/`)
 - **Dynamic Schema Discovery**: AI agents analyze documents to propose new entity types
@@ -189,36 +186,42 @@ result = await tidy.query(
 )
 ```
 
-### Schema Configuration
-```yaml
-# schemas/nodes/person/schema.yaml
-entity_type: "Person"
-version: "2.1"
-description: "Individual person with professional attributes"
+### Model Configuration
+```python
+from pydantic import BaseModel, Field
+from tidyworld._types import TSchemaSource, TSchemaDefinition
 
-identifiers:
-  - field: "name"
-    weight: 0.8
-    required: true
-  - field: "email"
-    weight: 0.9
+# Define a schema source
+source = TSchemaSource(
+    name="user_models",
+    source_type="json",
+    location="/path/to/models.json",
+    metadata={"version": "1.0"}
+)
 
-fields:
-  name:
-    type: "string"
-    description: "Full name of the person"
-    examples: ["John Doe", "Dr. Sarah Chen"]
-    aliases: ["full_name", "person_name"]
-  
-  occupation:
-    type: "string" 
-    description: "Job title or profession"
-    examples: ["Software Engineer", "CEO", "Professor"]
+# Define a model with identifiers
+class Person(BaseModel):
+    name: str = Field(..., identifier=True)
+    email: str = Field(..., identifier=True)
+    age: int | None = None
+    occupation: str | None = None
 
-business_rules:
-  - name: "linkedin_enrichment"
-    trigger: "email is not null"
-    action: "enrich_from_linkedin_api"
+# Create schema definition
+person_schema = TSchemaDefinition(
+    model_name="Person",
+    schema_definition={
+        "name": {"type": "string"},
+        "email": {"type": "string", "format": "email"},
+        "age": {"type": "integer", "optional": True},
+        "occupation": {"type": "string", "optional": True}
+    },
+    identifiers=["name", "email"],
+    metadata={
+        "version": "1.0",
+        "category": "user",
+        "description": "Person entity with professional attributes"
+    }
+)
 ```
 
 ## 🌟 Differentiating Features
