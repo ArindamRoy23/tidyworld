@@ -2,8 +2,8 @@
 name = "tidyworld"
 version = "0.0.5"
 description = ""
-authors = ["Luca Pinchetti <luca@circlemind.co>", "Antonio Vespoli <antonio@circlemind.co>", "Yuhang Song <yuhang@circlemind.co>"]
-packages = [{include = "fast_graphrag" }]
+authors = ["Arindam Roy <arindamroyunofficial@gmail.com>"]
+packages = [{include = "tidyworld" }]
 readme = "README.md"
 
 [tool.poetry.dependencies]

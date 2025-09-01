@@ -48,61 +48,33 @@ TidyWorld coordinates between multiple storage systems:
 *TO FILL*
 ```
 
-### Core Components
+### Services
 
-#### 1. **Chunking Service** (`_services/_chunk_extraction.py`)
-- **Contextual Chunking**: Preserves entity boundaries and semantic coherence
-- **Metadata Preservation**: Maintains document provenance and context
-- **Adaptive Sizing**: Adjusts chunk boundaries based on content structure
+#### Chunk Extraction Service
+Made to extract chunks and save it in memory
 
-#### 2. **Model Management System** (`_services/_model_manager.py`)
-- **Flexible Storage**: Support for multiple schema sources (JSON, YAML, database)
-- **Identifier Management**: Explicit tracking of identifier fields for entity resolution
-- **Model Validation**: Pydantic-based schema validation and transformation
-- **Extensible Design**: Support for custom model sources and validation rules
+#### Data Modeling Service
+Made for updating/creating datamodels  (Nodes and Entities)
 
-#### 3. **Agentic Extraction Service** (`_services/`)
-- **Dynamic Schema Discovery**: AI agents analyze documents to propose new entity types
-- **Structured Output**: Function calling ensures reliable data extraction
-- **Business Logic Integration**: Pluggable agents for domain-specific processing
-- **Confidence Scoring**: Every extraction includes uncertainty estimates
+#### State Manager Service
+Made for managing state and operations 
+- insert
+-upsert 
+-delete
 
-#### 4. **Intelligent Deduplication** (`_agents/`)
-- **Entity Matching**: Semantic similarity + identifier field analysis
-- **Processing Router**: Directs entities to creation, update, merge, or conflict resolution paths
-- **Conflict Resolution**: AI-powered analysis of contradictory information
-- **Human-in-the-Loop**: Escalates uncertain cases for review
-
-#### 5. **Factoid Management** (`_storage/`)
-- **Atomic Storage**: Each entity attribute stored as individually versioned factoid
-- **Temporal Queries**: Reconstruct entity state at any historical point
-- **Source Tracking**: Complete audit trail from extraction to storage
-- **Conflict Handling**: Multiple conflicting values coexist with confidence scores
-
-#### 6. **Hybrid Storage Coordinator** (`_storage/`)
-- **Multi-Database Sync**: Coordinates NoSQL factoids, graph entities, and vector embeddings
-- **Event-Driven Architecture**: Real-time consistency across storage layers
-- **Transaction Management**: ACID guarantees for complex multi-store operations
-- **Performance Optimization**: Hot/warm/cold data tiering for efficient access
+### Hybrid storage manager
 
 
-### Data Flow Architecture
+### Storages
 
-#### Information Processing Pipeline
-1. **Document Ingestion**: Documents processed through contextual chunking
-2. **Schema Selection**: Vector similarity matches chunks to relevant entity schemas
-3. **Agentic Extraction**: AI agents extract structured entities using discovered schemas
-4. **Deduplication Routing**: Entities classified as new, updates, merges, or conflicts
-5. **Factoid Generation**: Entity attributes decomposed into versioned, attributed factoids
-6. **Storage Coordination**: Factoids stored in NoSQL, canonical views in graph DB
-7. **Index Updates**: Vector embeddings updated for future similarity searches
+#### VectorDB storage
+- Create collection
+- Delete collection 
+- Create Item 
 
-#### Schema Evolution Cycle
-1. **Pattern Detection**: AI agents identify new entity types in documents
-2. **Schema Proposal**: Generate new schema definitions with example entities
-3. **Validation**: Human review for critical schema changes
-4. **Version Management**: New schema versions with migration strategies
-5. **Embedding Update**: Regenerate field description vectors for semantic matching
+#### NoSQLDB storage
+
+#### Graph storage
 
 ### Key Technical Decisions
 

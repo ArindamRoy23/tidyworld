@@ -134,4 +134,3 @@ class DefaultChunkingService(BaseChunkingService[TChunk]):
                     overlap.append(text)
                 result.append("".join(chain(reversed(overlap), (c[0] for c in chunk))))
         return result
-

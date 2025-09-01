@@ -27,25 +27,6 @@ class BaseChunkingService(Generic[GTChunk]):
     raise NotImplementedError
 
 
-#   graph_upsert: BaseGraphUpsertPolicy[GTNode, GTEdge, GTId]
-#   max_gleaning_steps: int = 0
-
-#   def extract(
-#     self,
-#     llm: BaseLLMService,
-#     documents: Iterable[Iterable[GTChunk]],
-#     prompt_kwargs: Dict[str, str],
-#     entity_types: List[str],
-#   ) -> List[asyncio.Future[Optional[BaseGraphStorage[GTNode, GTEdge, GTId]]]]:
-#     """Extract both entities and relationships from the given data."""
-#     raise NotImplementedError
-
-#   async def extract_entities_from_query(
-#     self, llm: BaseLLMService, query: str, prompt_kwargs: Dict[str, str]
-#   ) -> Dict[str, List[str]]:
-#     """Extract entities from the given query."""
-#     raise NotImplementedError
-
 class BaseDataModelService():
     """Base class for schema management."""
 
@@ -82,7 +63,6 @@ class BaseDataModelService():
 
 class BaseInformationExtractionService():
     """Base class for information extraction."""
-
 
     async def extract(self, data)->List[asyncio.Future[Optional[BaseGraphStorage[GTNode, GTEdge, GTId]]]]:
         """Extract information from the given data."""

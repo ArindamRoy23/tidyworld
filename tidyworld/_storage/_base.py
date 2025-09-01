@@ -1,22 +1,35 @@
 from dataclasses import dataclass, field
 from typing import (
-    Any,
-    Dict,
-    Generic,
-    Iterable,
-    List,
-    Literal,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-    final,
+  Any,
+  Dict,
+  Generic,
+  Iterable,
+  List,
+  Literal,
+  Mapping,
+  Optional,
+  Sequence,
+  Tuple,
+  Union,
+  final,
 )
 
 from scipy.sparse import csr_matrix  # type: ignore
 
-from tidyworld._types import GTBlob, GTEdge, GTEmbedding, GTId, GTKey, GTNode, GTValue, THash, TIndex, TScore
+from tidyworld._types import (
+  GTBlob,
+  GTCollection,
+  GTDocument,
+  GTEdge,
+  GTEmbedding,
+  GTId,
+  GTKey,
+  GTNode,
+  GTValue,
+  THash,
+  TIndex,
+  TScore,
+)
 from tidyworld._utils import logger
 
 from ._namespace import Namespace
@@ -24,87 +37,87 @@ from ._namespace import Namespace
 
 @dataclass
 class BaseStorage:
-    config: Optional[Any] = field()
-    namespace: Optional[Namespace] = field(default=None)
-    _mode: Optional[Literal["insert", "query"]] = field(init=False, default=None)
-    _in_progress: Optional[bool] = field(init=False, default=None)
+  config: Optional[Any] = field()
+  namespace: Optional[Namespace] = field(default=None)
+  _mode: Optional[Literal["insert", "query"]] = field(init=False, default=None)
+  _in_progress: Optional[bool] = field(init=False, default=None)
 
-    def set_in_progress(self, in_progress: bool) -> None:
-        self._in_progress = in_progress
+  def set_in_progress(self, in_progress: bool) -> None:
+    self._in_progress = in_progress
 
-    @final
-    async def insert_start(self):
-        if self._mode == "query":
-            logger.info("Switching from query to insert mode.")
-            if self._in_progress is not False:
-                t = (
-                    f"[{self.__class__.__name__}] Cannot being insert before committing query operations."
-                    "Committing query operations now."
-                )
-                logger.error(t)
-                await self._query_done()
-                self._in_progress = False
-        self._mode = "insert"
+  @final
+  async def insert_start(self):
+    if self._mode == "query":
+      logger.info("Switching from query to insert mode.")
+      if self._in_progress is not False:
+        t = (
+          f"[{self.__class__.__name__}] Cannot being insert before committing query operations."
+          "Committing query operations now."
+        )
+        logger.error(t)
+        await self._query_done()
+        self._in_progress = False
+    self._mode = "insert"
 
-        if self._in_progress is not True:
-            await self._insert_start()
+    if self._in_progress is not True:
+      await self._insert_start()
 
-    @final
-    async def query_start(self):
-        if self._mode == "insert":
-            logger.info("Switching from insert to query mode.")
-            if self._in_progress is not False:
-                t = (
-                    f"[{self.__class__.__name__}] Cannot being query before commiting insert operations."
-                    "Committing insert operations now."
-                )
-                logger.error(t)
-                await self._insert_done()
-                self._in_progress = False
-        self._mode = "query"
+  @final
+  async def query_start(self):
+    if self._mode == "insert":
+      logger.info("Switching from insert to query mode.")
+      if self._in_progress is not False:
+        t = (
+          f"[{self.__class__.__name__}] Cannot being query before commiting insert operations."
+          "Committing insert operations now."
+        )
+        logger.error(t)
+        await self._insert_done()
+        self._in_progress = False
+    self._mode = "query"
 
-        if self._in_progress is not True:
-            await self._query_start()
+    if self._in_progress is not True:
+      await self._query_start()
 
-    @final
-    async def insert_done(self) -> None:
-        if self._mode == "query":
-            t = f"[{self.__class__.__name__}] Trying to commit insert operations in query mode."
-            logger.error(t)
-        else:
-            if self._in_progress is not False:
-                await self._insert_done()
-            else:
-                logger.warning(f"[{self.__class__.__name__}] No insert operations to commit.")
+  @final
+  async def insert_done(self) -> None:
+    if self._mode == "query":
+      t = f"[{self.__class__.__name__}] Trying to commit insert operations in query mode."
+      logger.error(t)
+    else:
+      if self._in_progress is not False:
+        await self._insert_done()
+      else:
+        logger.warning(f"[{self.__class__.__name__}] No insert operations to commit.")
 
-    @final
-    async def query_done(self) -> None:
-        if self._mode == "insert":
-            t = f"[{self.__class__.__name__}] Trying to commit query operations in insert mode."
-            logger.error(t)
-        else:
-            if self._in_progress is not False:
-                await self._query_done()
-            else:
-                logger.warning(f"[{self.__class__.__name__}] No query operations to commit.")
+  @final
+  async def query_done(self) -> None:
+    if self._mode == "insert":
+      t = f"[{self.__class__.__name__}] Trying to commit query operations in insert mode."
+      logger.error(t)
+    else:
+      if self._in_progress is not False:
+        await self._query_done()
+      else:
+        logger.warning(f"[{self.__class__.__name__}] No query operations to commit.")
 
-    async def _insert_start(self):
-        """Prepare the storage for inserting."""
-        pass
+  async def _insert_start(self):
+    """Prepare the storage for inserting."""
+    pass
 
-    async def _insert_done(self):
-        """Commit the storage operations after inserting."""
-        if self._mode == "query":
-            logger.error("Trying to commit insert operations in query mode.")
+  async def _insert_done(self):
+    """Commit the storage operations after inserting."""
+    if self._mode == "query":
+      logger.error("Trying to commit insert operations in query mode.")
 
-    async def _query_start(self):
-        """Prepare the storage for querying."""
-        pass
+  async def _query_start(self):
+    """Prepare the storage for querying."""
+    pass
 
-    async def _query_done(self):
-        """Release the storage after querying."""
-        if self._mode == "insert":
-            logger.error("Trying to commit query operations in insert mode.")
+  async def _query_done(self):
+    """Release the storage after querying."""
+    if self._mode == "insert":
+      logger.error("Trying to commit query operations in insert mode.")
 
 
 ####################################################################################################
@@ -114,11 +127,11 @@ class BaseStorage:
 
 @dataclass
 class BaseBlobStorage(BaseStorage, Generic[GTBlob]):
-    async def get(self) -> Optional[GTBlob]:
-        raise NotImplementedError
+  async def get(self) -> Optional[GTBlob]:
+    raise NotImplementedError
 
-    async def set(self, blob: GTBlob) -> None:
-        raise NotImplementedError
+  async def set(self, blob: GTBlob) -> None:
+    raise NotImplementedError
 
 
 ####################################################################################################
@@ -128,32 +141,32 @@ class BaseBlobStorage(BaseStorage, Generic[GTBlob]):
 
 @dataclass
 class BaseIndexedKeyValueStorage(BaseStorage, Generic[GTKey, GTValue]):
-    async def size(self) -> int:
-        raise NotImplementedError
+  async def size(self) -> int:
+    raise NotImplementedError
 
-    async def get(self, keys: Iterable[GTKey]) -> Iterable[Optional[GTValue]]:
-        raise NotImplementedError
+  async def get(self, keys: Iterable[GTKey]) -> Iterable[Optional[GTValue]]:
+    raise NotImplementedError
 
-    async def get_by_index(self, indices: Iterable[TIndex]) -> Iterable[Optional[GTValue]]:
-        raise NotImplementedError
+  async def get_by_index(self, indices: Iterable[TIndex]) -> Iterable[Optional[GTValue]]:
+    raise NotImplementedError
 
-    async def get_index(self, keys: Iterable[GTKey]) -> Iterable[Optional[TIndex]]:
-        raise NotImplementedError
+  async def get_index(self, keys: Iterable[GTKey]) -> Iterable[Optional[TIndex]]:
+    raise NotImplementedError
 
-    async def upsert(self, keys: Iterable[GTKey], values: Iterable[GTValue]) -> None:
-        raise NotImplementedError
+  async def upsert(self, keys: Iterable[GTKey], values: Iterable[GTValue]) -> None:
+    raise NotImplementedError
 
-    async def upsert_by_index(self, indices: Iterable[TIndex], values: Iterable[GTValue]) -> None:
-        raise NotImplementedError
+  async def upsert_by_index(self, indices: Iterable[TIndex], values: Iterable[GTValue]) -> None:
+    raise NotImplementedError
 
-    async def delete(self, keys: Iterable[GTKey]) -> None:
-        raise NotImplementedError
+  async def delete(self, keys: Iterable[GTKey]) -> None:
+    raise NotImplementedError
 
-    async def delete_by_index(self, indices: Iterable[TIndex]) -> None:
-        raise NotImplementedError
+  async def delete_by_index(self, indices: Iterable[TIndex]) -> None:
+    raise NotImplementedError
 
-    async def mask_new(self, keys: Iterable[GTKey]) -> Iterable[bool]:
-        raise NotImplementedError
+  async def mask_new(self, keys: Iterable[GTKey]) -> Iterable[bool]:
+    raise NotImplementedError
 
 
 ####################################################################################################
@@ -163,33 +176,33 @@ class BaseIndexedKeyValueStorage(BaseStorage, Generic[GTKey, GTValue]):
 
 @dataclass
 class BaseVectorStorage(BaseStorage, Generic[GTId, GTEmbedding]):
-    embedding_dim: int = field(default=0)
+  embedding_dim: int = field(default=0)
 
-    @property
-    def size(self) -> int:
-        raise NotImplementedError
+  @property
+  def size(self) -> int:
+    raise NotImplementedError
 
-    async def get_knn(
-        self, embeddings: Iterable[GTEmbedding], top_k: int
-    ) -> Tuple[Iterable[Iterable[GTId]], Iterable[Iterable[TScore]]]:
-        raise NotImplementedError
+  async def get_knn(
+    self, embeddings: Iterable[GTEmbedding], top_k: int
+  ) -> Tuple[Iterable[Iterable[GTId]], Iterable[Iterable[TScore]]]:
+    raise NotImplementedError
 
-    async def upsert(
-        self,
-        ids: Iterable[GTId],
-        embeddings: Iterable[GTEmbedding],
-        metadata: Union[Iterable[Dict[str, Any]], None] = None,
-    ) -> None:
-        raise NotImplementedError
+  async def upsert(
+    self,
+    ids: Iterable[GTId],
+    embeddings: Iterable[GTEmbedding],
+    metadata: Union[Iterable[Dict[str, Any]], None] = None,
+  ) -> None:
+    raise NotImplementedError
 
-    async def score_all(
-        self, embeddings: Iterable[GTEmbedding], top_k: int = 1, threshold: Optional[float] = None
-    ) -> csr_matrix:
-        """Score all embeddings against the given queries.
+  async def score_all(
+    self, embeddings: Iterable[GTEmbedding], top_k: int = 1, threshold: Optional[float] = None
+  ) -> csr_matrix:
+    """Score all embeddings against the given queries.
 
-        Return a (#queries, #all_embeddings) matrix containing the relevancy scores of each embedding given each query.
-        """
-        raise NotImplementedError
+    Return a (#queries, #all_embeddings) matrix containing the relevancy scores of each embedding given each query.
+    """
+    raise NotImplementedError
 
 
 ####################################################################################################
@@ -199,66 +212,218 @@ class BaseVectorStorage(BaseStorage, Generic[GTId, GTEmbedding]):
 
 @dataclass
 class BaseGraphStorage(BaseStorage, Generic[GTNode, GTEdge, GTId]):
-    async def save_graphml(self, path: str) -> None:
-        raise NotImplementedError
+  async def save_graphml(self, path: str) -> None:
+    raise NotImplementedError
 
-    async def node_count(self) -> int:
-        raise NotImplementedError
+  async def node_count(self) -> int:
+    raise NotImplementedError
 
-    async def edge_count(self) -> int:
-        raise NotImplementedError
+  async def edge_count(self) -> int:
+    raise NotImplementedError
 
-    async def get_node(self, node: Union[GTNode, GTId]) -> Union[Tuple[GTNode, TIndex], Tuple[None, None]]:
-        raise NotImplementedError
+  async def get_node(self, node: Union[GTNode, GTId]) -> Union[Tuple[GTNode, TIndex], Tuple[None, None]]:
+    raise NotImplementedError
 
-    async def get_all_edges(self) -> Iterable[GTEdge]:
-        raise NotImplementedError
+  async def get_all_edges(self) -> Iterable[GTEdge]:
+    raise NotImplementedError
 
-    async def get_edges(
-        self, source_node: Union[GTId, TIndex], target_node: Union[GTId, TIndex]
-    ) -> Iterable[Tuple[GTEdge, TIndex]]:
-        raise NotImplementedError
+  async def get_edges(
+    self, source_node: Union[GTId, TIndex], target_node: Union[GTId, TIndex]
+  ) -> Iterable[Tuple[GTEdge, TIndex]]:
+    raise NotImplementedError
 
-    async def _get_edge_indices(
-        self, source_node: Union[GTId, TIndex], target_node: Union[GTId, TIndex]
-    ) -> Iterable[TIndex]:
-        raise NotImplementedError
+  async def _get_edge_indices(
+    self, source_node: Union[GTId, TIndex], target_node: Union[GTId, TIndex]
+  ) -> Iterable[TIndex]:
+    raise NotImplementedError
 
-    async def get_node_by_index(self, index: TIndex) -> Union[GTNode, None]:
-        raise NotImplementedError
+  async def get_node_by_index(self, index: TIndex) -> Union[GTNode, None]:
+    raise NotImplementedError
 
-    async def get_edge_by_index(self, index: TIndex) -> Union[GTEdge, None]:
-        raise NotImplementedError
+  async def get_edge_by_index(self, index: TIndex) -> Union[GTEdge, None]:
+    raise NotImplementedError
 
-    async def upsert_node(self, node: GTNode, node_index: Union[TIndex, None]) -> TIndex:
-        raise NotImplementedError
+  async def upsert_node(self, node: GTNode, node_index: Union[TIndex, None]) -> TIndex:
+    raise NotImplementedError
 
-    async def upsert_edge(self, edge: GTEdge, edge_index: Union[TIndex, None]) -> TIndex:
-        raise NotImplementedError
+  async def upsert_edge(self, edge: GTEdge, edge_index: Union[TIndex, None]) -> TIndex:
+    raise NotImplementedError
 
-    async def insert_edges(
-        self,
-        edges: Optional[Iterable[GTEdge]] = None,
-        indices: Optional[Iterable[Tuple[TIndex, TIndex]]] = None,
-        attrs: Optional[Mapping[str, Sequence[Any]]] = None,
-    ) -> List[TIndex]:
-        raise NotImplementedError
+  async def insert_edges(
+    self,
+    edges: Optional[Iterable[GTEdge]] = None,
+    indices: Optional[Iterable[Tuple[TIndex, TIndex]]] = None,
+    attrs: Optional[Mapping[str, Sequence[Any]]] = None,
+  ) -> List[TIndex]:
+    raise NotImplementedError
 
-    async def are_neighbours(self, source_node: Union[GTId, TIndex], target_node: Union[GTId, TIndex]) -> bool:
-        raise NotImplementedError
+  async def are_neighbours(self, source_node: Union[GTId, TIndex], target_node: Union[GTId, TIndex]) -> bool:
+    raise NotImplementedError
 
-    async def delete_edges_by_index(self, indices: Iterable[TIndex]) -> None:
-        raise NotImplementedError
+  async def delete_edges_by_index(self, indices: Iterable[TIndex]) -> None:
+    raise NotImplementedError
 
-    async def get_entities_to_relationships_map(self) -> csr_matrix:
-        raise NotImplementedError
+  async def get_entities_to_relationships_map(self) -> csr_matrix:
+    raise NotImplementedError
 
-    async def get_relationships_to_chunks_map(self) -> dict[int, List[THash]]:
-        raise NotImplementedError
+  async def get_relationships_to_chunks_map(self) -> dict[int, List[THash]]:
+    raise NotImplementedError
 
-    async def get_relationships_attrs(self, key: str) -> List[List[Any]]:
-        raise NotImplementedError
+  async def get_relationships_attrs(self, key: str) -> List[List[Any]]:
+    raise NotImplementedError
 
-    async def score_nodes(self, initial_weights: Optional[csr_matrix]) -> csr_matrix:
-        """Score nodes based on the initial weights."""
-        raise NotImplementedError
+  async def score_nodes(self, initial_weights: Optional[csr_matrix]) -> csr_matrix:
+    """Score nodes based on the initial weights."""
+    raise NotImplementedError
+
+
+####################################################################################################
+# NoSQL Storage
+####################################################################################################
+
+
+@dataclass
+class BaseNoSQLStorage(BaseStorage, Generic[GTCollection, GTDocument, GTId]):
+  """Base class for NoSQL storage systems like MongoDB, ArangoDB, etc.
+
+  Supports:
+  - Collection management (create, delete, list collections)
+  - Document operations (CRUD operations)
+  - Querying and filtering
+  - Indexing
+  - Aggregation operations
+  """
+
+  # Collection Management
+  async def create_collection(self, collection: GTCollection) -> None:
+    """Create a new collection."""
+    raise NotImplementedError
+
+  async def delete_collection(self, collection_name: str) -> None:
+    """Delete a collection and all its documents."""
+    raise NotImplementedError
+
+  async def list_collections(self) -> List[GTCollection]:
+    """List all collections."""
+    raise NotImplementedError
+
+  async def collection_exists(self, collection_name: str) -> bool:
+    """Check if a collection exists."""
+    raise NotImplementedError
+
+  async def get_collection_info(self, collection_name: str) -> Optional[GTCollection]:
+    """Get collection metadata and schema information."""
+    raise NotImplementedError
+
+  # Document Operations
+  async def insert_one(self, collection_name: str, document: GTDocument) -> GTId:
+    """Insert a single document into a collection."""
+    raise NotImplementedError
+
+  async def insert_many(self, collection_name: str, documents: Iterable[GTDocument]) -> List[GTId]:
+    """Insert multiple documents into a collection."""
+    raise NotImplementedError
+
+  async def find_one(self, collection_name: str, document_id: GTId) -> Optional[GTDocument]:
+    """Find a single document by ID."""
+    raise NotImplementedError
+
+  async def find_many(
+    self,
+    collection_name: str,
+    filter_dict: Optional[Dict[str, Any]] = None,
+    limit: Optional[int] = None,
+    skip: Optional[int] = None,
+    sort: Optional[List[Tuple[str, int]]] = None,
+  ) -> List[GTDocument]:
+    """Find multiple documents with optional filtering, pagination, and sorting."""
+    raise NotImplementedError
+
+  async def update_one(
+    self, collection_name: str, document_id: GTId, update_dict: Dict[str, Any], upsert: bool = False
+  ) -> bool:
+    """Update a single document. Returns True if document was modified."""
+    raise NotImplementedError
+
+  async def update_many(self, collection_name: str, filter_dict: Dict[str, Any], update_dict: Dict[str, Any]) -> int:
+    """Update multiple documents matching the filter. Returns count of modified documents."""
+    raise NotImplementedError
+
+  async def delete_one(self, collection_name: str, document_id: GTId) -> bool:
+    """Delete a single document by ID. Returns True if document was deleted."""
+    raise NotImplementedError
+
+  async def delete_many(self, collection_name: str, filter_dict: Dict[str, Any]) -> int:
+    """Delete multiple documents matching the filter. Returns count of deleted documents."""
+    raise NotImplementedError
+
+  async def replace_one(
+    self, collection_name: str, document_id: GTId, document: GTDocument, upsert: bool = False
+  ) -> bool:
+    """Replace an entire document. Returns True if document was replaced."""
+    raise NotImplementedError
+
+  # Querying and Aggregation
+  async def count_documents(self, collection_name: str, filter_dict: Optional[Dict[str, Any]] = None) -> int:
+    """Count documents in a collection with optional filtering."""
+    raise NotImplementedError
+
+  async def distinct(self, collection_name: str, field: str, filter_dict: Optional[Dict[str, Any]] = None) -> List[Any]:
+    """Get distinct values for a field."""
+    raise NotImplementedError
+
+  async def aggregate(self, collection_name: str, pipeline: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Execute an aggregation pipeline."""
+    raise NotImplementedError
+
+  # Indexing
+  async def create_index(
+    self,
+    collection_name: str,
+    keys: Union[str, List[Tuple[str, int]]],
+    unique: bool = False,
+    sparse: bool = False,
+    name: Optional[str] = None,
+  ) -> str:
+    """Create an index on the collection. Returns the index name."""
+    raise NotImplementedError
+
+  async def drop_index(self, collection_name: str, index_name: str) -> None:
+    """Drop an index from the collection."""
+    raise NotImplementedError
+
+  async def list_indexes(self, collection_name: str) -> List[Dict[str, Any]]:
+    """List all indexes on a collection."""
+    raise NotImplementedError
+
+  # Text Search (if supported by the database)
+  async def text_search(self, collection_name: str, query: str, limit: Optional[int] = None) -> List[GTDocument]:
+    """Perform text search on documents."""
+    raise NotImplementedError
+
+  # Bulk Operations
+  async def bulk_write(self, collection_name: str, operations: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Execute multiple write operations in a single request."""
+    raise NotImplementedError
+
+  # Transaction Support (if supported by the database)
+  async def start_transaction(self) -> Any:
+    """Start a database transaction."""
+    raise NotImplementedError
+
+  async def commit_transaction(self, transaction: Any) -> None:
+    """Commit a transaction."""
+    raise NotImplementedError
+
+  async def abort_transaction(self, transaction: Any) -> None:
+    """Abort a transaction."""
+    raise NotImplementedError
+
+  # Schema Validation (if supported)
+  async def validate_document(self, collection_name: str, document: GTDocument) -> bool:
+    """Validate a document against the collection schema."""
+    raise NotImplementedError
+
+  async def update_collection_schema(self, collection_name: str, schema: Dict[str, Any]) -> None:
+    """Update the validation schema for a collection."""
+    raise NotImplementedError

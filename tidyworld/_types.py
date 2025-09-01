@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field, fields
-from typing import Any, Callable, ClassVar, Dict, Generic, Iterable, List, Optional, Tuple, TypeAlias, TypeVar
+from typing import Any, Callable, ClassVar, Dict, Generic, Iterable, List, Optional, Tuple, TypeAlias, TypeVar, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -50,6 +50,12 @@ GTHash = TypeVar("GTHash")
 # Graph
 GTId = TypeVar("GTId")
 
+# NoSQL specific generics
+GTFilter = TypeVar("GTFilter")  # For query filters
+GTUpdate = TypeVar("GTUpdate")  # For update operations
+GTIndex = TypeVar("GTIndex")    # For index definitions
+GTTransaction = TypeVar("GTTransaction")  # For transaction objects
+
 
 @dataclass
 class BTNode(TSerializable):
@@ -78,6 +84,141 @@ class BTChunk(TSerializable):
 
 
 GTChunk = TypeVar("GTChunk", bound=BTChunk)
+
+
+# NoSQL Document types
+@dataclass
+class BTDocument(TSerializable):
+    id: Any
+    data: Dict[str, Any] = field(default_factory=dict)
+
+    def to_document_dict(self) -> Dict[str, Any]:
+        """Convert document to dictionary format."""
+        return {"_id": self.id, **self.data}
+
+    @classmethod
+    def from_dict(cls, doc_dict: Dict[str, Any]) -> "BTDocument":
+        """Create document from dictionary."""
+        doc_id = doc_dict.pop("_id", None)
+        return cls(id=doc_id, data=doc_dict)
+
+
+GTDocument = TypeVar("GTDocument", bound=BTDocument)
+
+
+@dataclass
+class BTCollection(TSerializable):
+    name: str
+    schema: Optional[Dict[str, Any]] = field(default=None)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+GTCollection = TypeVar("GTCollection", bound=BTCollection)
+
+
+
+# NoSQL Operation Types
+@dataclass
+class TNoSQLFilter:
+    """Generic NoSQL filter/query type."""
+    conditions: Dict[str, Any] = field(default_factory=dict)
+    logical_operator: str = field(default="and")  # "and", "or", "not"
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert filter to dictionary format."""
+        if self.logical_operator == "and":
+            return self.conditions
+        else:
+            return {f"${self.logical_operator}": [self.conditions]}
+
+
+@dataclass
+class TNoSQLUpdate:
+    """Generic NoSQL update operation type."""
+    set_fields: Dict[str, Any] = field(default_factory=dict)
+    unset_fields: List[str] = field(default_factory=list)
+    inc_fields: Dict[str, Union[int, float]] = field(default_factory=dict)
+    push_fields: Dict[str, Any] = field(default_factory=dict)
+    pull_fields: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert update operation to dictionary format."""
+        update_doc = {}
+        if self.set_fields:
+            update_doc["$set"] = self.set_fields
+        if self.unset_fields:
+            update_doc["$unset"] = {field: "" for field in self.unset_fields}
+        if self.inc_fields:
+            update_doc["$inc"] = self.inc_fields
+        if self.push_fields:
+            update_doc["$push"] = self.push_fields
+        if self.pull_fields:
+            update_doc["$pull"] = self.pull_fields
+        return update_doc
+
+
+@dataclass
+class TNoSQLIndex:
+    """Generic NoSQL index definition type."""
+    name: str
+    fields: List[Tuple[str, int]] = field(default_factory=list)  # (field_name, direction: 1 or -1)
+    unique: bool = field(default=False)
+    sparse: bool = field(default=False)
+    partial_filter: Optional[Dict[str, Any]] = field(default=None)
+    text_fields: List[str] = field(default_factory=list)  # For text search indexes
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert index definition to dictionary format."""
+        index_def = {
+            "name": self.name,
+            "unique": self.unique,
+                        "sparse": self.sparse
+        }
+
+        if self.fields:
+            index_def["keys"] = dict(self.fields)
+
+        if self.text_fields:
+            index_def["text_keys"] = {field: "text" for field in self.text_fields}
+
+        if self.partial_filter:
+            index_def["partialFilterExpression"] = self.partial_filter
+
+        return index_def
+
+
+@dataclass
+class TBulkWriteOperation:
+    """Generic bulk write operation type."""
+    operation_type: str  # "insert", "update", "delete", "replace"
+    collection_name: str
+    document: Optional[Any] = field(default=None)  # Using Any instead of GTDocument to avoid context issues
+    filter_dict: Optional[Dict[str, Any]] = field(default=None)
+    update_dict: Optional[Dict[str, Any]] = field(default=None)
+    upsert: bool = field(default=False)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert bulk operation to dictionary format."""
+        op_dict: Dict[str, Any] = {
+            "operation": self.operation_type,
+            "collection": self.collection_name
+        }
+
+        if self.document:
+            if hasattr(self.document, 'to_document_dict'):
+                op_dict["document"] = self.document.to_document_dict()
+            elif hasattr(self.document, 'to_dict'):
+                op_dict["document"] = self.document.to_dict()
+            else:
+                op_dict["document"] = self.document
+        if self.filter_dict is not None:
+            op_dict["filter"] = self.filter_dict
+        if self.update_dict is not None:
+            op_dict["update"] = self.update_dict
+        if self.upsert:
+            op_dict["upsert"] = self.upsert
+
+        return op_dict
 
 
 ####################################################################################################
