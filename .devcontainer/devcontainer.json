@@ -4,6 +4,17 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
+  // Allow container to resolve the Windows host and reach Ollama
+  "runArgs": [
+    "--add-host=host.docker.internal:host-gateway"
+  ],
+  // Environment for tools/SDKs in the container to hit Ollama on the host
+  "containerEnv": {
+    "OLLAMA_HOST": "http://host.docker.internal:11434",
+    // Many OpenAI-compatible SDKs use these for Ollama
+    "OPENAI_BASE_URL": "http://host.docker.internal:11434/v1",
+    "OPENAI_API_KEY": "ollama"
+  },
   "customizations": {
     "vscode": {
       "extensions": [
