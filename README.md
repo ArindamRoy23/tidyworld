@@ -8,10 +8,11 @@ TidyWorld reimagines knowledge graph construction by creating a dynamic, intelli
 
 ### Core Philosophy
 TidyWorld addresses fundamental limitations in current knowledge graph systems:
-- **Static schemas** that break when encountering new data types
-- **Loss of provenance** when information is extracted and transformed
-- **Manual deduplication** that doesn't handle conflicting information intelligently
-- **Rigid extraction rules** that can't adapt to diverse document types
+- **Structured Extraction** Unstructured extraction leads to enourmous duplication and reduces usability.
+- **Queryability** Voluminous textual data can be quried fast and easyG
+- **Knowledge Updation and Provenance** Keep each peice of information trackable to the document and its metadata.
+- **Flexible** Add business logic to extraction/updation
+- **Linkages** Different graph entities can be linked to a diverse range of data storages.
 
 ### Key Innovations
 
