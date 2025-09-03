@@ -19,7 +19,24 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "cwd": "${workspaceFolder}",
-            "purpose": ["debug-test"]
+            "purpose": [
+                "debug-test"
+            ]
+        },
+        {
+            "name": "Python: Run extractor.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/tests/test_extractor.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "cwd": "${workspaceFolder}/tidyworld",
+            "purpose": [
+                "debug-test"
+            ]
         },
         {
             "name": "Python: Run All Tests",
@@ -37,7 +54,25 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "cwd": "${workspaceFolder}",
-            "purpose": ["debug-test"]
+            "purpose": [
+                "debug-test"
+            ]
+        },
+        {
+            "name": "ADK Run",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "google.adk.cli",
+            "cwd": "${workspaceFolder}/tidyworld",
+            "envFile": "${workspaceFolder}/.env",
+            "justMyCode": false,
+            "args": [
+                "run",
+                "_agents",
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }
