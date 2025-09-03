@@ -1,5 +1,7 @@
 # TidyWorld: Agentic Self-Maintaining Knowledge Graph
 
+> **⚠️ WORK IN PROGRESS**: This project is under active development and the features described may not be fully implemented yet.
+
 TidyWorld reimagines knowledge graph construction by creating a dynamic, intelligent system that automatically evolves its understanding of data through agentic processes. Unlike traditional knowledge graphs that require manual schema definition and static extraction rules, TidyWorld uses AI agents to continuously learn, adapt, and maintain both the data structure and content quality.
 
 ## 🌟 Project Vision
@@ -57,9 +59,9 @@ Made to extract chunks and save it in memory
 Made for updating/creating datamodels  (Nodes and Entities)
 
 #### State Manager Service
-Made for managing state and operations 
+Made for managing state and operations
 - insert
--upsert 
+-upsert
 -delete
 
 ### Hybrid storage manager
@@ -69,8 +71,8 @@ Made for managing state and operations
 
 #### VectorDB storage
 - Create collection
-- Delete collection 
-- Create Item 
+- Delete collection
+- Create Item
 
 #### NoSQLDB storage
 
