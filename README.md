@@ -2,14 +2,14 @@
 
 > **⚠️ WORK IN PROGRESS**: This project is under active development and the features described may not be fully implemented yet.
 
-TidyWorld reimagines knowledge graph construction by creating a dynamic, intelligent system that automatically evolves its understanding of data through agentic processes. Unlike traditional knowledge graphs that require manual schema definition and static extraction rules, TidyWorld uses AI agents to continuously learn, adapt, and maintain both the data structure and content quality.
+TidyWorld reimagines knowledge graph construction by creating a agentic dynamic, intelligent system that automatically evolves its understanding of data through agentic processes. Unlike traditional knowledge graphs that require manual schema definition and static extraction rules, TidyWorld uses AI agents to continuously learn, adapt, and maintain both the data structure and content quality.
 
 ## 🌟 Project Vision
 
 ### Core Philosophy
 TidyWorld addresses fundamental limitations in current knowledge graph systems:
 - **Structured Extraction** Unstructured extraction leads to enourmous duplication and reduces usability.
-- **Queryability** Voluminous textual data can be quried fast and easyG
+- **Queryability** Voluminous textual data can be quried fast and easy
 - **Knowledge Updation and Provenance** Keep each peice of information trackable to the document and its metadata.
 - **Flexible** Add business logic to extraction/updation
 - **Linkages** Different graph entities can be linked to a diverse range of data storages.
