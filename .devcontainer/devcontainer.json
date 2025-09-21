@@ -43,7 +43,7 @@
       }
     }
   },
-  "postCreateCommand": "poetry install",
+  "postCreateCommand": "echo 'Container started successfully'",
   "remoteUser": "vscode",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {

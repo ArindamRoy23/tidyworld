@@ -1,40 +1,45 @@
-[tool.poetry]
+[project]
 name = "tidyworld"
 version = "0.0.5"
 description = ""
-authors = ["Arindam Roy <arindamroyunofficial@gmail.com>"]
-packages = [{ include = "tidyworld" }]
+authors = [{ name = "Arindam Roy", email = "arindamroyunofficial@gmail.com" }]
+requires-python = ">=3.10,<3.13"
 readme = "README.md"
+dependencies = [
+    "igraph>=0.11.6,<0.12",
+    "xxhash>=3.5.0,<4",
+    "pydantic>=2.9.2,<3",
+    "scipy>=1.14.1,<2",
+    "scikit-learn>=1.5.2,<2",
+    "tenacity>=8.0.0,<9.0.0",
+    "openai>=1.52.1,<2",
+    "scipy-stubs>=1.14.1.5,<2",
+    "hnswlib>=0.8.0,<0.9",
+    "instructor>=1.6.3,<2",
+    "requests>=2.32.3,<3",
+    "python-dotenv>=1.0.1,<2",
+    "tiktoken>=0.8.0,<0.9",
+    "aiolimiter>=1.1.0,<2",
+    "google-genai>=1.3.0,<2",
+    "sentencepiece>=0.2.0,<0.3",
+    "json-repair>=0.39.1,<0.40",
+    "voyageai>=0.3.2,<0.4",
+    "google-adk==1.13.0",
+    "litellm==1.65.8",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-igraph = "^0.11.6"
-xxhash = "^3.5.0"
-pydantic = "^2.9.2"
-scipy = "^1.14.1"
-scikit-learn = "^1.5.2"
-tenacity = ">=8.0.0,<9.0.0"
-openai = "^1.52.1"
-scipy-stubs = "^1.14.1.5"
-hnswlib = "^0.8.0"
-instructor = "^1.6.3"
-requests = "^2.32.3"
-python-dotenv = "^1.0.1"
-tiktoken = "^0.8.0"
-aiolimiter = "^1.1.0"
-google-genai = "^1.3.0"
-sentencepiece = "^0.2.0"
-json-repair = "^0.39.1"
-voyageai = "^0.3.2"
-google-adk = "1.13.0"
-litellm = "1.65.8"
+[dependency-groups]
+dev = ["ruff>=0.7.0,<0.8"]
 
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.7.0"
+[tool.hatch.build.targets.sdist]
+include = ["tidyworld"]
+
+[tool.hatch.build.targets.wheel]
+include = ["tidyworld"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff]
 line-length = 120
@@ -59,5 +64,6 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
 [tool.ruff.lint.per-file-ignores]
 "_prompt.py" = ["E501"]
