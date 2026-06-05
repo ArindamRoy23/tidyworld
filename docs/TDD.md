@@ -695,4 +695,44 @@ node_redirects: {
 
 ---
 
-*End of document.*
+# Operational Details
+
+## Repo Structure:
+
+```
+tidyworld/
+│
+├── extractor/
+│   ├── pipeline.py              # Orchestrates ingest → extract → store
+│   │
+│   ├── ingest/
+│   │   ├── base.py
+│   │   └── pdf.py
+│   │
+│   ├── extract/
+│   │   ├── base.py
+│   │   └── lg_multi_agent/
+│   │       ├── __init__.py
+│   │       ├── agent.py
+│   │       ├── nodes.py
+│   │       └── tools.py
+│   │
+│   └── store/
+│       ├── vector/
+│       │   ├── base.py
+│       │   └── qdrant.py
+│       └── data/
+│           ├── base.py
+│           └── mongo.py
+│
+├── retriever/                   # placeholder
+│   └── .gitkeep
+│
+├── models/
+│   ├── chunk.py
+│   ├── graph.py
+│   └── tidyworld.py
+│
+└── config.py
+```
+
