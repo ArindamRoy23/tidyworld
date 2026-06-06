@@ -1,26 +1,25 @@
-FROM python:3.10-slim
+FROM python:3.12-slim
 
-# Install system dependencies (excluding git since it will be installed by feature)
-RUN apt-get update && apt-get install -y \
-    curl \
+# System dependencies for Python builds, Docling, and dev tooling
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
+    git \
+    libgl1 \
+    libglib2.0-0 \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy UV directly from its official image and make it executable
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uvx /usr/local/bin/uvx
 RUN chmod +x /usr/local/bin/uv /usr/local/bin/uvx
 
-# Set working directory
 WORKDIR /workspaces/tidyworld
 
-# Copy dependency files and README
-COPY pyproject.toml README.md ./
+# Pre-install dependencies for faster container startup
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --group dev --no-install-project
 
-# Install dependencies as root (they'll be accessible to vscode user)
-RUN uv pip install --system pip setuptools wheel && \
-    uv sync --no-dev
-
-# Set the default shell to bash
 ENV SHELL="/bin/bash"
+ENV VIRTUAL_ENV="/workspaces/tidyworld/.venv"
+ENV PATH="/workspaces/tidyworld/.venv/bin:${PATH}"

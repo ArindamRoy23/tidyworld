@@ -1,24 +1,33 @@
 {
   "name": "TidyWorld Development",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/tidyworld",
+  "forwardPorts": [27017, 6333, 6334],
+  "portsAttributes": {
+    "27017": {
+      "label": "MongoDB",
+      "onAutoForward": "silent"
+    },
+    "6333": {
+      "label": "Qdrant REST",
+      "onAutoForward": "silent"
+    },
+    "6334": {
+      "label": "Qdrant gRPC",
+      "onAutoForward": "silent"
+    }
   },
-  // Allow container to resolve the Windows host and reach Ollama
-  "runArgs": [
-    "--add-host=host.docker.internal:host-gateway"
-  ],
-  // Environment for tools/SDKs in the container to hit Ollama on the host
   "containerEnv": {
+    "MONGODB_URI": "mongodb://mongodb:27017/tidyworld",
+    "QDRANT_URL": "http://qdrant:6333",
     "OLLAMA_HOST": "http://host.docker.internal:11434",
-    // Many OpenAI-compatible SDKs use these for Ollama
     "OPENAI_BASE_URL": "http://host.docker.internal:11434/v1",
     "OPENAI_API_KEY": "ollama"
   },
   "customizations": {
     "vscode": {
       "extensions": [
-        // Add mypy
         "ms-python.python",
         "ms-python.vscode-pylance",
         "charliermarsh.ruff",
@@ -28,7 +37,7 @@
         "ms-python.mypy-type-checker"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.defaultInterpreterPath": "/workspaces/tidyworld/.venv/bin/python",
         "python.linting.enabled": true,
         "python.formatting.provider": "black",
         "[python]": {
@@ -43,7 +52,7 @@
       }
     }
   },
-  "postCreateCommand": "echo 'Container started successfully'",
+  "postCreateCommand": "uv sync --group dev",
   "remoteUser": "vscode",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {

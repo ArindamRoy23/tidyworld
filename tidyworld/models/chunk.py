@@ -3,11 +3,13 @@ from enum import Enum
 from typing import Any, Dict, Optional
 
 
-@dataclass
 class SourceType(str, Enum):
     """Supported data source types across the TidyWorld ingestion pipeline."""
 
     PDF = "pdf"
+    CSV = "csv"
+    JSON = "json"
+    WEB = "web"
 
 
 @dataclass
@@ -18,10 +20,11 @@ class DataSource:
     """
 
     source_id: str
-    source_type: str  # e.g., "pdf", "csv", "url", "json"
+    source_type: SourceType
     uri: str  # File path, network URL, or S3 bucket location
     metadata: Dict[str, Any] = field(default_factory=dict)
     raw_content: Optional[bytes] = None  # Optional: for holding file bytes directly in memory
+    tenant: str = 'public'
 
 
 @dataclass

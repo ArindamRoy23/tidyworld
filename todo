@@ -1,0 +1,16 @@
+[x] Build a docker dev container for the impl in the TDD 
+
+-------extractor-------
+
+[x] Build the router for the tidyworld/extractor/ingest, it should route based on input, not implemented in case of no impl
+[x] Write negative and integration tests for the pdf extractor + router unit test/int test
+[] Build the tidyworld/extractor/extract, it should extract based on the ingest output, langgraph impl to be done in adapter, 
+    similar to ingest 
+[] Build the tidyworld/extractor/store, implement mongoDB + qdrant for the moment
+
+-------retriever-------
+[] Build the retriever, compte the centroid in the svc layer atm 
+
+
+-------global-------
+[] How is tidyworld packaged and pushed to pypi? 

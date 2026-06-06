@@ -11,7 +11,6 @@ class PdfIngestAdapter(IngestAdapter):
 
     def __init__(self):
         """Init class."""
-        # Initialize the converter once to avoid overhead on every call
         self.converter = DocumentConverter()
 
     def ingest(self, source: DataSource) -> List[Chunk]:
@@ -52,5 +51,4 @@ class PdfIngestAdapter(IngestAdapter):
         token limits and maintaining semantic boundaries is critical to
         preventing context loss.
         """
-        # ... token counting and merging logic ...
         return chunks
