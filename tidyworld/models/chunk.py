@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 
@@ -12,6 +13,21 @@ class SourceType(str, Enum):
     WEB = "web"
 
 
+class Tenant(str, Enum):
+    """Supported tenants across the TidyWorld ingestion pipeline."""
+
+    PUBLIC = "public"
+    CLIENT = "client"
+
+
+class ExtractionContext:
+    """Context for the extraction process."""
+
+    tenant: Tenant
+    updated_at: datetime = datetime.now()
+    metadata: Dict[str, Any] = {}
+
+
 @dataclass
 class DataSource:
     """Represents the raw input data before it is ingested and chunked.
@@ -22,9 +38,9 @@ class DataSource:
     source_id: str
     source_type: SourceType
     uri: str  # File path, network URL, or S3 bucket location
+    extraction_context: ExtractionContext  # Context for the extraction process
     metadata: Dict[str, Any] = field(default_factory=dict)
     raw_content: Optional[bytes] = None  # Optional: for holding file bytes directly in memory
-    tenant: str = 'public'
 
 
 @dataclass

@@ -4,13 +4,21 @@
 
 [x] Build the router for the tidyworld/extractor/ingest, it should route based on input, not implemented in case of no impl
 [x] Write negative and integration tests for the pdf extractor + router unit test/int test
-[] Build the tidyworld/extractor/extract, it should extract based on the ingest output, langgraph impl to be done in adapter, 
-    similar to ingest 
-[] Build the tidyworld/extractor/store, implement mongoDB + qdrant for the moment
+[] Build the tidyworld/extractor/extract, it should extract based on the ingest output, langgraph impl to be done in adapter, similar to ingest 
+[] Build the tidyworld/extractor/loader, implement mongoDB + qdrant for the moment
+[] Design extractor evals
+[] Scan and improve the 5 level logging system, add more details and context to the logs
 
 -------retriever-------
 [] Build the retriever, compte the centroid in the svc layer atm 
+[] Design retriever evals
 
+-------frontend-------
+[] Build the frontend for the tidyworld, it should be a web app that allows you to query the tidyworld per tidyverse
 
 -------global-------
 [] How is tidyworld packaged and pushed to pypi? 
+[] Dockerize tidyworld?? 
+[] Add code coverage metrics
+[] Benchmark tidyworld performance against: LightRAG, MSFT GraphRAGH
+

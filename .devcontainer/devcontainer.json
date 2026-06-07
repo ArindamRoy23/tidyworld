@@ -34,7 +34,8 @@
         "ms-python.black-formatter",
         "njpwerner.autodocstring",
         "tamasfe.even-better-toml",
-        "ms-python.mypy-type-checker"
+        "ms-python.mypy-type-checker",
+        "cweijan.vscode-database-client2"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/workspaces/tidyworld/.venv/bin/python",

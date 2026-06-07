@@ -1,5 +1,9 @@
 FROM python:3.12-slim
 
+RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*.deb \
+    && apt-get clean \
+    && apt-get update
+    
 # System dependencies for Python builds, Docling, and dev tooling
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
